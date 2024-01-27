@@ -10,3 +10,13 @@
 
 **Example of use:**
 ![](https://i.imgur.com/hjeMOfP.png)
+
+---
+
+# Another way to use it is via CMD
+- Open a command prompt and navigate to the directory with our compiled file. 
+
+- Enter the name of the file itself and the arguments such as the file to be signed, the file to digitally sign, and the output file.
+
+**Example of use:**
+![](https://i.imgur.com/WE2P8Z5.png)
