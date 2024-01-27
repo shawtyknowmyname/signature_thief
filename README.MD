@@ -8,5 +8,5 @@
 
 - Then specify the path where you want to save the file.
 
-** Example of use: **
+**Example of use:**
 ![](https://i.imgur.com/hjeMOfP.png)
