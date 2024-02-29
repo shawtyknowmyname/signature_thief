@@ -2,18 +2,19 @@
 #define SIGNATURE_THIEF_HPP
 
 #include <vector>
-#include <iostream>
-#include <fstream>
-#include <stdexcept>
-#include <Windows.h>
+#include <string_view>
 
-struct MappedFile {
-    std::vector<BYTE> data;
-    LONGLONG size;
+struct mapped_file_t {
+    using byte_array_t = std::vector<uint8_t>;
+    byte_array_t binary;
+    uint64_t size;
 };
 
-MappedFile MapFileToMemory(const std::string& filename);
-MappedFile RippedCert(const std::string& fromWhere);
-void AppendSignatureToPayload(const std::string& signedPePath, const std::string& payloadPath, const std::string& outputPath);
+class Signature_Thief {
+public:
+    mapped_file_t map_binary_to_memory(std::string_view filename);
+    mapped_file_t rip_cert(std::string_view file_location);
+    void append_signature_to_payload(std::string_view signature_file, mapped_file_t& payload);
+};
 
 #endif 
