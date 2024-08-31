@@ -20,3 +20,6 @@
 
 **Example of use:**
 ![](https://i.imgur.com/WE2P8Z5.png)
+
+- Thank you very much for your help: [annihilatorq](https://github.com/annihilatorq)
+
