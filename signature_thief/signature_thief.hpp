@@ -3,18 +3,25 @@
 
 #include <vector>
 #include <string_view>
+#include <filesystem>
+#include <span>
+#include <optional>
 
-struct mapped_file_t {
-    using byte_array_t = std::vector<uint8_t>;
-    byte_array_t binary;
-    uint64_t size;
-};
-
-class Signature_Thief {
+class signature_thief {
 public:
-    mapped_file_t map_binary_to_memory(std::string_view filename);
-    mapped_file_t rip_cert(std::string_view file_location);
-    void append_signature_to_payload(std::string_view signature_file, mapped_file_t& payload);
+	explicit signature_thief(std::filesystem::path path_to_file);
+
+	std::optional<std::string> load_file() noexcept;
+	void extract_certificate(std::filesystem::path from_where);
+	void append_certificate_to_payload(std::span<uint8_t> signature_data);
+
+	auto get_binary() const { return m_file; }
+	auto get_certificate() const { return m_cert; }
+
+private:
+	std::vector<uint8_t> m_file;
+	std::vector<uint8_t> m_cert;
+	std::filesystem::path m_source_path;
 };
 
-#endif 
+#endif

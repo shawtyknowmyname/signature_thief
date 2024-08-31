@@ -6,87 +6,97 @@
 #include <Windows.h>
 #include <string>
 
-mapped_file_t Signature_Thief::map_binary_to_memory(std::string_view filename) {
-    std::ifstream file(filename.data(), std::ios::binary | std::ios::ate);
+signature_thief::signature_thief(std::filesystem::path path_to_file) : m_source_path(path_to_file)
+{}
 
-    if (!file.is_open()) {
-        throw std::runtime_error("Error opening file: " + std::string(filename));
-    }
+std::optional<std::string> signature_thief::load_file() noexcept {
+	std::ifstream file(m_source_path, std::ios::binary | std::ios::ate);
+	if (!file.is_open()) {
+		return "Error opening file: " + m_source_path.string();
+	}
 
-    const uint64_t size = file.tellg();
-    file.seekg(0, std::ios::beg);
+	auto size = file.tellg();
+	file.seekg(0, std::ios::beg);
+	m_file.resize(size);
+	file.read(reinterpret_cast<char*>(m_file.data()), size);
 
-    mapped_file_t::byte_array_t buffer(size);
-    file.read(reinterpret_cast<char*>(buffer.data()), size);
-
-    return { std::move(buffer), size };
+	return std::nullopt;
 }
 
+void signature_thief::extract_certificate(std::filesystem::path source_path) {
+	std::ifstream file(source_path, std::ios::binary | std::ios::ate);
 
-mapped_file_t Signature_Thief::rip_cert(std::string_view file_location) {
-    mapped_file_t signed_pe_data = map_binary_to_memory(file_location);
+	if (!file.is_open()) {
+		throw std::runtime_error("Error opening file: " + source_path.string());
+	}
 
-    const auto* dos_header = reinterpret_cast<const PIMAGE_DOS_HEADER>(signed_pe_data.binary.data());
-    const auto* nt_headers = reinterpret_cast<const PIMAGE_NT_HEADERS>(signed_pe_data.binary.data() + dos_header->e_lfanew);
+	auto size = file.tellg();
+	file.seekg(0, std::ios::beg);
 
-    const auto& cert_info = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+	std::vector<uint8_t> buffer(size);
+	file.read(reinterpret_cast<char*>(buffer.data()), size);
 
-    const auto pe_binary_begin = signed_pe_data.binary.begin() + cert_info.VirtualAddress;
-    const auto pe_binary_end = pe_binary_begin + cert_info.Size;
+	auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(buffer.data());
+	auto* nt_headers = reinterpret_cast<PIMAGE_NT_HEADERS>(buffer.data() + dos_header->e_lfanew);
 
-    mapped_file_t::byte_array_t cert_data(pe_binary_begin, pe_binary_end);
-    return { cert_data, cert_info.Size };
+	auto& cert_info = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+	auto cert_data_begin = buffer.begin() + cert_info.VirtualAddress;
+	auto cert_data_end = cert_data_begin + cert_info.Size;
+
+	std::span<uint8_t> cert_data(cert_data_begin, cert_data_end);
+	m_cert.assign(cert_data.begin(), cert_data.end());
 }
 
-void Signature_Thief::append_signature_to_payload(std::string_view signature_file, mapped_file_t& payload) {
-    try {
-        mapped_file_t signature_data = map_binary_to_memory(signature_file);
-
-        payload.binary.insert(payload.binary.end(), signature_data.binary.begin(), signature_data.binary.end());
-        payload.size += signature_data.size;
-    }
-    catch (const std::exception& e) {
-        throw std::runtime_error("Error appending signature to payload: " + std::string(e.what()));
-    }
+void signature_thief::append_certificate_to_payload(std::span<uint8_t> signature_data) {
+	m_file.insert(m_file.end(), signature_data.begin(), signature_data.end());
 }
 
 int main(int argc, char** argv) {
-    try {
-        Signature_Thief signature_thief;
+	try {
+		std::string signed_pe_path, payload_path, output_path;
 
-        std::string signedPePathStr, payloadPathStr, outputPathStr;
+		if (argc >= 4) {
+			signed_pe_path = argv[1];
+			payload_path = argv[2];
+			output_path = argv[3];
+		}
+		else {
+			std::cout << "Enter the path to the signed file: ";
+			std::getline(std::cin, signed_pe_path);
 
-        if (argc >= 4) {
-            signedPePathStr = argv[1];
-            payloadPathStr = argv[2];
-            outputPathStr = argv[3];
-        }
-        else {
-            std::cout << "Enter the path to the signed file: ";
-            std::getline(std::cin, signedPePathStr);
+			std::cout << "Enter the path to the payload file: ";
+			std::getline(std::cin, payload_path);
 
-            std::cout << "Enter the path to the payload file: ";
-            std::getline(std::cin, payloadPathStr);
+			std::cout << "Enter the output path: ";
+			std::getline(std::cin, output_path);
+		}
 
-            std::cout << "Enter the output path: ";
-            std::getline(std::cin, outputPathStr);
-        }
+		signature_thief thief(signed_pe_path);
+		auto result = thief.load_file();
+		if (result) {
+			std::cerr << "Error appeared: " << *result << "\n";
+			return EXIT_FAILURE;
+		}
 
-        mapped_file_t payload = signature_thief.rip_cert(payloadPathStr);
-        signature_thief.append_signature_to_payload(signedPePathStr, payload);
+		thief.extract_certificate(payload_path);
 
-        std::ofstream outputFile(outputPathStr.data(), std::ios::binary);
-        if (!outputFile.is_open()) {
-            throw std::runtime_error("Error opening output file: " + std::string(outputPathStr));
-        }
-        outputFile.write(reinterpret_cast<const char*>(payload.binary.data()), payload.size);
-        outputFile.close();
+		auto cert = thief.get_certificate();
+		thief.append_certificate_to_payload(cert);
 
-        std::cout << "Signature appended successfully." << std::endl;
-        return EXIT_SUCCESS;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+		auto binary = thief.get_binary();
+
+		std::ofstream output_file(output_path, std::ios::binary);
+		if (!output_file.is_open()) {
+			throw std::runtime_error("Error opening output file: " + output_path);
+		}
+		output_file.write(reinterpret_cast<const char*>(binary.data()), binary.size());
+		output_file.close();
+
+		std::cout << "Signature appended successfully." << std::endl;
+		return EXIT_SUCCESS;
+	}
+	catch (const std::exception& e) {
+		std::cerr << "Error: " << e.what() << std::endl;
+		return EXIT_FAILURE;
+	}
 }
