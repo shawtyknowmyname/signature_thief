@@ -3,24 +3,41 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/shawtyknowmyname/signature_thief)
 ![GitHub Repo stars](https://img.shields.io/github/stars/shawtyknowmyname/signature_thief)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/shawtyknowmyname/signature_thief) 
+## Description
+Windows PE Signature Thief is a powerful utility designed to steal and transfer digital signatures from one file to another.
+
+## Features
+- Extracts the digital signature from a file.
+- Installs the stolen signature onto another file.
+- Can be used through a graphical interface or via the command line.
+
+## Installation
+### Installation Steps
+**Clone the repository:**
+```git clone https://github.com/shawtyknowmyname/signature_thief.git```
+- Build the project: Open the solution in your preferred IDE (e.g., Visual Studio) and build the project. Ensure that the build completes successfully.
+
 ## Usage:
-- Compile the program.
+- Run the program.
 
-- After opening it, enter the path to the file which you want to steal the digital signature.
+- Enter the path of the file from which you want to steal the digital signature.
 
-- Next, enter the path to the file on which you want to install the stolen signature.
+- Enter the path of the file to which you want to apply the stolen signature.
 
-- Then specify the path where you want to save the file.
+- Specify the path where you want to save the final file.
 
 **Example of use:**
 ![](https://i.imgur.com/hjeMOfP.png)
 
 ---
 
-# Another way to use it is via CMD
-- Open a command prompt and navigate to the directory with our compiled file. 
+# Using the command line:
+1. **Open a command prompt and navigate to the directory containing the compiled program.**
 
-- Enter the name of the file itself and the arguments: the signed file, the file to pass the digital signature to, and the output file. 
+2. **Enter the program name and the arguments:**
+- Path to the signed file.
+- Path to the file that should receive the digital signature.
+- Path to the output file.
 
 **Example of use:**
 ![](https://i.imgur.com/WE2P8Z5.png)
