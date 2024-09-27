@@ -14,8 +14,9 @@ Windows PE Signature Thief is a powerful utility designed to steal and transfer 
 ## Installation
 ### Installation Steps
 **Clone the repository:**
-   ```bash
-git clone https://github.com/shawtyknowmyname/signature_thief.git```
+```bash
+git clone https://github.com/shawtyknowmyname/signature_thief.git
+```
 - Build the project: Open the solution in your preferred IDE (e.g., Visual Studio) and build the project. Ensure that the build completes successfully.
 
 ## Usage:
