@@ -2,7 +2,7 @@
 
 ![GitHub top language](https://img.shields.io/github/languages/top/shawtyknowmyname/signature_thief)
 ![GitHub Repo stars](https://img.shields.io/github/stars/shawtyknowmyname/signature_thief)
-![GitHub Downloads (https://img.shields.io/github/downloads/shawtyknowmyname/signature_thief/total)
+![GitHub Downloads (all assets, all releases)] (https://img.shields.io/github/downloads/shawtyknowmyname/signature_thief/total)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/shawtyknowmyname/signature_thief)
 ## Usage:
 - Compile the program.
