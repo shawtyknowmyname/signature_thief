@@ -1,4 +1,4 @@
-# Windows Signature Thief in C++
+# Windows PE Signature Thief
 
 ![GitHub top language](https://img.shields.io/github/languages/top/shawtyknowmyname/signature_thief)
 ![GitHub Repo stars](https://img.shields.io/github/stars/shawtyknowmyname/signature_thief)
