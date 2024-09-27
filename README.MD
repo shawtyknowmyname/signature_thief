@@ -4,7 +4,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/shawtyknowmyname/signature_thief)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/shawtyknowmyname/signature_thief) 
 ## Description
-Windows PE Signature Thief is a powerful utility designed to steal and transfer digital signatures from one file to another.
+Windows Signature Thief is a program designed to extract the digital signature from one file and apply it to another.
 
 ## Features
 - Extracts the digital signature from a file.
@@ -12,8 +12,7 @@ Windows PE Signature Thief is a powerful utility designed to steal and transfer 
 - Can be used through a graphical interface or via the command line.
 
 ## Installation
-### Installation Steps
-**Clone the repository:**
+### Clone the repository:
 ```bash
 git clone https://github.com/shawtyknowmyname/signature_thief.git
 ```
