@@ -4,7 +4,7 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/shawtyknowmyname/signature_thief)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/shawtyknowmyname/signature_thief) 
 ## Description
-Windows Signature Thief is a program designed to extract the digital signature from one file and apply it to another.
+Windows Signature Thief is a program designed to extract the digital signature from one file and install it to another.
 
 ## Features
 - Extracts the digital signature from a file.
