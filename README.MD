@@ -30,7 +30,7 @@ git clone https://github.com/shawtyknowmyname/signature_thief.git
 - Specify the path where you want to save the final file.
 
 **Example of use:**
-![](https://imgur.com/a/V4pdlmk)
+![](https://i.imgur.com/Su8VeiZ.jpeg)
 
 ---
 
