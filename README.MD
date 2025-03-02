@@ -5,11 +5,12 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/shawtyknowmyname/signature_thief)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/shawtyknowmyname/signature_thief/total)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/shawtyknowmyname/signature_thief) 
-##📌 Description
+
+## :pushpin: Description
 
 Windows PE Signature Thief is a program designed to extract the digital signature from one PE file and install it onto another.
 
-##✨ Features
+## :sparkles: Features
 
 - Extracts the digital signature from a PE file.
 
@@ -17,7 +18,7 @@ Windows PE Signature Thief is a program designed to extract the digital signatur
 
 - Supports command-line usage for automation.
 
-🚫 Does not support x86 (32-bit) executables! Only x64 PE files are supported.
+:no_entry_sign: Does not support x86 (32-bit) executables! Only x64 PE files are supported.
 
 ## Installation
 ### Clone the repository:
@@ -28,7 +29,7 @@ git clone https://github.com/shawtyknowmyname/signature_thief.git
 
 - Build the project (Ensure that the build completes successfully).
 
-## 🚀 Usage:
+## :rocket: Usage:
 ### Run the program.
 
 - Enter the path of the signed file (from which you want to extract the signature).
@@ -58,7 +59,7 @@ signature_thief.exe <signed_file> <payload_file> <output_file>
 **Example of use:**
 ![](https://i.imgur.com/WE2P8Z5.png)
 
-## 📢 Notes
+## :loudspeaker: Notes
 
 Ensure that both files are PE x64 binaries.
 
@@ -66,7 +67,7 @@ If no valid signature is found, the program will throw an error.
 
 The modified file should be inspected manually to ensure proper signing.
 
-## Special Thanks ❤️
+## Special Thanks :hearts:
 
 Big thanks to [annihilatorq](https://github.com/annihilatorq) for help and contributions!
 
