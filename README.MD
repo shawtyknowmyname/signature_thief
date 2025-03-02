@@ -5,29 +5,37 @@
 ![GitHub Repo stars](https://img.shields.io/github/stars/shawtyknowmyname/signature_thief)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/shawtyknowmyname/signature_thief/total)
 ![GitHub Issues or Pull Requests](https://img.shields.io/github/issues/shawtyknowmyname/signature_thief) 
-## Description
-Windows Signature Thief is a program designed to extract the digital signature from one file and install it to another.
+##📌 Description
 
-## Features
-- Extracts the digital signature from a file.
-- Installs the stolen signature onto another file.
-- Can be used through a graphical interface or via the command line.
+Windows PE Signature Thief is a program designed to extract the digital signature from one PE file and install it onto another.
+
+##✨ Features
+
+- Extracts the digital signature from a PE file.
+
+- Installs the extracted signature onto another PE file.
+
+- Supports command-line usage for automation.
+
+🚫 Does not support x86 (32-bit) executables! Only x64 PE files are supported.
 
 ## Installation
 ### Clone the repository:
 ```bash
 git clone https://github.com/shawtyknowmyname/signature_thief.git
 ```
-- Build the project: Open the solution in your preferred IDE (e.g., Visual Studio) and build the project. Ensure that the build completes successfully.
+- Open the solution in Visual Studio or any preferred IDE.
 
-## Usage:
-- Run the program.
+- Build the project (Ensure that the build completes successfully).
 
-- Enter the path of the file from which you want to steal the digital signature.
+## 🚀 Usage:
+### Run the program.
 
-- Enter the path of the file to which you want to apply the stolen signature.
+- Enter the path of the signed file (from which you want to extract the signature).
 
-- Specify the path where you want to save the final file.
+- Enter the path of the payload file (where the signature should be applied).
+
+- Specify the output path where the final signed file will be saved.
 
 **Example of use:**
 ![](https://i.imgur.com/Su8VeiZ.jpeg)
@@ -37,13 +45,28 @@ git clone https://github.com/shawtyknowmyname/signature_thief.git
 # Using the command line:
 1. **Open a command prompt and navigate to the directory containing the compiled program.**
 
-2. **Enter the program name and the arguments:**
-- Path to the signed file.
-- Path to the file that should receive the digital signature.
-- Path to the output file.
+2. **Run the command with the required arguments:**
+```bash
+signature_thief.exe <signed_file> <payload_file> <output_file>
+```
+- `<signed_file>`: Path to the signed file.
+
+- `<payload_file>`: Path to the file that should receive the digital signature.
+
+- `<output_file>`: Path to the final output file.
 
 **Example of use:**
 ![](https://i.imgur.com/WE2P8Z5.png)
 
-- Thank you very much for your help: [annihilatorq](https://github.com/annihilatorq)
+## 📢 Notes
+
+Ensure that both files are PE x64 binaries.
+
+If no valid signature is found, the program will throw an error.
+
+The modified file should be inspected manually to ensure proper signing.
+
+## Special Thanks ❤️
+
+Big thanks to [annihilatorq](https://github.com/annihilatorq) for help and contributions!
 
