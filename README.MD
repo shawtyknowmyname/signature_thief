@@ -20,7 +20,7 @@ Windows PE Signature Thief is a program designed to extract the digital signatur
 
 :no_entry_sign: Does not support x86 (32-bit) executables! Only x64 PE files are supported.
 
-## Installation
+## :file_folder: Installation
 ### Clone the repository:
 ```bash
 git clone https://github.com/shawtyknowmyname/signature_thief.git
@@ -43,7 +43,7 @@ git clone https://github.com/shawtyknowmyname/signature_thief.git
 
 ---
 
-# Using the command line:
+# :computer: Using the command line:
 1. **Open a command prompt and navigate to the directory containing the compiled program.**
 
 2. **Run the command with the required arguments:**
@@ -70,4 +70,6 @@ The modified file should be inspected manually to ensure proper signing.
 ## Special Thanks :hearts:
 
 Big thanks to [annihilatorq](https://github.com/annihilatorq) for help and contributions!
+
+## If you find this project useful, please :star: the repo to show your support! :raised_hands:
 
