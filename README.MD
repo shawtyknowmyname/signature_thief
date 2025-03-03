@@ -1,4 +1,5 @@
 # Windows PE Signature Thief
+## If you find this project useful, please :star: the repo to show your support! :raised_hands:
 
 ![GitHub top language](https://img.shields.io/github/languages/top/shawtyknowmyname/signature_thief)
 ![GitHub License](https://img.shields.io/github/license/shawtyknowmyname/signature_thief)
@@ -70,6 +71,4 @@ The modified file should be inspected manually to ensure proper signing.
 ## Special Thanks :hearts:
 
 Big thanks to [annihilatorq](https://github.com/annihilatorq) for help and contributions!
-
-## If you find this project useful, please :star: the repo to show your support! :raised_hands:
 
