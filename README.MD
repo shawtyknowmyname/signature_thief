@@ -1,5 +1,5 @@
 # Windows PE Signature Thief
-## If you find this project useful, please give a :star: to this repo! :raised_hands:
+## If you find this project useful, please give a :star: to this repo
 
 ![GitHub top language](https://img.shields.io/github/languages/top/shawtyknowmyname/signature_thief)
 ![GitHub License](https://img.shields.io/github/license/shawtyknowmyname/signature_thief)
