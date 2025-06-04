@@ -18,8 +18,7 @@ Windows PE Signature Thief is a program designed to extract the digital signatur
 - Installs the extracted signature onto another PE file.
 
 - Supports command-line usage.
-
-:no_entry_sign: Does not support x86 (32-bit) executables! Only x64 PE files are supported.
+- Works with both x86 (32-bit) and x64 PE files.
 
 ## :file_folder: Installation
 ### Clone the repository:

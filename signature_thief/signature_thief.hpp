@@ -4,7 +4,7 @@
 #include <vector>
 #include <filesystem>
 #include <optional>
-#include <Windows.h>
+#include <windows.h>
 #include <span>
 
 class signature_thief {
