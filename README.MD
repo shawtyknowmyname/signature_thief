@@ -65,6 +65,32 @@ signature_thief.exe <signed_file> <payload_file> <output_file>
 - The modified file should be inspected manually to ensure proper signature block placement.
 - The signature will **appear in the file**, but is **not valid** for security checks or software trust chains.
 
+## :warning: Why this project matters
+
+Over the years, researchers have observed that different Anti-Virus and security products treat PE signatures inconsistently:
+
+- Some AVs **do not validate** the digital signature cryptographically — they simply check for the **presence of a certificate block** in the PE header.
+- Others give **implicit trust** to specific certificate authorities (e.g., Microsoft, Adobe) **without verifying** if the signature is still valid.
+- A few rely solely on the fact that a `Certificate Table` exists and is non-zero — ignoring whether it matches the binary content.
+
+This leads to scenarios where a PE file with an **invalid or spoofed signature** may appear **less suspicious** or may even **bypass basic static detection heuristics**.
+
+The purpose of this project is to **demonstrate and highlight** these inconsistencies in trust mechanisms, allowing researchers to:
+
+- Evaluate which AV engines rely on the **presence** versus the **validity** of a signature.
+- Understand which certificate authorities are implicitly "whitelisted" by vendors.
+- Reproduce conditions described in security papers such as [SpecterOps: Subverting Trust in Windows](https://specterops.io/wp-content/uploads/sites/3/2022/06/SpecterOps_Subverting_Trust_in_Windows.pdf).
+
+> The signature appended by this tool is not valid — and that’s the point.
+
+It’s meant to explore **how far you can get** with just the appearance of trust, not the actual cryptographic proof of it.
+
+**Use responsibly.**
+
+## :books: References
+
+- [Subverting Trust in Windows: Spoofing Code Signing (SpecterOps, 2022)](https://specterops.io/wp-content/uploads/sites/3/2022/06/SpecterOps_Subverting_Trust_in_Windows.pdf) — detailed research explaining how Windows trust mechanisms can be visually tricked using signature block reuse, which this project demonstrates.
+
 ## Special Thanks :hearts:
 
 Big thanks to [annihilatorq](https://github.com/annihilatorq) for help and contributions!
