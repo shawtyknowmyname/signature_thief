@@ -1,4 +1,4 @@
-#include "signature_thief.hpp"
+﻿#include "signature_thief.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -20,7 +20,20 @@ std::optional<std::string> signature_thief::load_file() noexcept {
     return std::nullopt;
 }
 
-void signature_thief::extract_certificate(std::filesystem::path source_path) {
+IMAGE_DATA_DIRECTORY* signature_thief::get_security_dir(uint8_t* base) {
+    auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
+    auto* nt_headers32 = reinterpret_cast<PIMAGE_NT_HEADERS32>(base + dos_header->e_lfanew);
+
+    if (nt_headers32->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
+        return &nt_headers32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
+    else {
+        auto* nt_headers64 = reinterpret_cast<PIMAGE_NT_HEADERS64>(base + dos_header->e_lfanew);
+        return &nt_headers64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    }
+}
+
+void signature_thief::extract_certificate(const std::filesystem::path& source_path) {
     std::ifstream file(source_path, std::ios::binary | std::ios::ate);
     if (!file.is_open()) {
         throw std::runtime_error("Error opening file: " + source_path.string());
@@ -32,15 +45,14 @@ void signature_thief::extract_certificate(std::filesystem::path source_path) {
     std::vector<uint8_t> buffer(size);
     file.read(reinterpret_cast<char*>(buffer.data()), size);
 
-    auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(buffer.data());
-    auto* nt_headers = reinterpret_cast<PIMAGE_NT_HEADERS>(buffer.data() + dos_header->e_lfanew);
+    auto* cert_info_ptr = get_security_dir(buffer.data());
 
-    auto& cert_info = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    auto& cert_info = *cert_info_ptr;
     if (cert_info.VirtualAddress == 0 || cert_info.Size == 0 || cert_info.VirtualAddress + cert_info.Size > buffer.size()) {
         throw std::runtime_error("No valid certificate found in file: " + source_path.string());
     }
-
-    m_cert.assign(buffer.begin() + cert_info.VirtualAddress, buffer.begin() + cert_info.VirtualAddress + cert_info.Size);
+    m_cert.assign(buffer.begin() + cert_info.VirtualAddress,
+    buffer.begin() + cert_info.VirtualAddress + cert_info.Size);
 }
 
 void signature_thief::append_certificate_to_payload(std::span<const uint8_t> signature_data) {
@@ -52,12 +64,10 @@ void signature_thief::append_certificate_to_payload(std::span<const uint8_t> sig
 }
 
 void signature_thief::update_pe_header() {
-    auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(m_file.data());
-    auto* nt_headers = reinterpret_cast<PIMAGE_NT_HEADERS>(m_file.data() + dos_header->e_lfanew);
-    auto& cert_info = nt_headers->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+    auto* cert_info_ptr = get_security_dir(m_file.data());
 
-    cert_info.VirtualAddress = static_cast<DWORD>(m_file.size());
-    cert_info.Size = static_cast<DWORD>(m_cert.size());
+    cert_info_ptr->VirtualAddress = static_cast<DWORD>(m_file.size());
+    cert_info_ptr->Size = static_cast<DWORD>(m_cert.size());
 }
 
 int main(int argc, char** argv) {
