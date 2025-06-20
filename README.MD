@@ -11,7 +11,7 @@
 
 Windows PE Signature Thief is a program designed to extract the digital signature from one PE file and install it onto another.
 
-> ⚠️ **Disclaimer:**  
+> :warning: **Disclaimer:**  
 > The transferred signature is **cosmetic only**.  
 > It will be **visibly present** in the file properties (e.g., Windows Explorer),  
 > but **will not pass cryptographic verification** (e.g., `WinVerifyTrust`, `signtool`, etc.)  
@@ -63,7 +63,7 @@ signature_thief.exe <signed_file> <payload_file> <output_file>
 - If no valid signature is found, the program will throw an error.
 - The modified file should be inspected manually to ensure proper signature block placement.
 - The signature will **appear in the file**, but is **not valid** for security checks or software trust chains.
-- ⚠️ **Note:** This tool has **not been tested on 32-bit Windows systems**. Compatibility with 32-bit OS environments is not guaranteed.
+- :warning: **Note:** This tool has **not been tested on 32-bit Windows systems**. Compatibility with 32-bit OS environments is not guaranteed.
 
 ## :warning: Why this project matters
 
