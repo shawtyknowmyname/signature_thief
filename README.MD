@@ -11,15 +11,18 @@
 
 Windows PE Signature Thief is a program designed to extract the digital signature from one PE file and install it onto another.
 
+> ⚠️ **Disclaimer:**  
+> The transferred signature is **cosmetic only**.  
+> It will be **visibly present** in the file properties (e.g., Windows Explorer),  
+> but **will not pass cryptographic verification** (e.g., `WinVerifyTrust`, `signtool`, etc.)  
+> because the payload content does not match the original signed hash.
+
 ## :sparkles: Features
 
 - Extracts the digital signature from a PE file.
-
 - Installs the extracted signature onto another PE file.
-
 - Supports command-line usage.
-
-:no_entry_sign: Does not support x86 (32-bit) executables! Only x64 PE files are supported.
+- :white_check_mark: **Works with both x86 (32‑bit) and x64 (64‑bit) PE binaries.**
 
 ## :file_folder: Installation
 ### Clone the repository:
@@ -27,16 +30,13 @@ Windows PE Signature Thief is a program designed to extract the digital signatur
 git clone https://github.com/shawtyknowmyname/signature_thief.git
 ```
 - Open the solution in Visual Studio or any preferred IDE.
-
 - Build the project (Ensure that the build completes successfully).
 
 ## :rocket: Usage:
 ### Run the program.
 
 - Enter the path of the signed file (from which you want to extract the signature).
-
 - Enter the path of the payload file (where the signature should be applied).
-
 - Specify the output path where the final signed file will be saved.
 
 **Example of use:**
@@ -52,9 +52,7 @@ git clone https://github.com/shawtyknowmyname/signature_thief.git
 signature_thief.exe <signed_file> <payload_file> <output_file>
 ```
 - `<signed_file>`: Path to the signed file.
-
 - `<payload_file>`: Path to the file that should receive the digital signature.
-
 - `<output_file>`: Path to the final output file.
 
 **Example of use:**
@@ -62,13 +60,11 @@ signature_thief.exe <signed_file> <payload_file> <output_file>
 
 ## :loudspeaker: Notes
 
-Ensure that both files are PE x64 binaries.
-
-If no valid signature is found, the program will throw an error.
-
-The modified file should be inspected manually to ensure proper signing.
+- Ensure that both files are valid PE binaries (either 32‑bit or 64‑bit).
+- If no valid signature is found, the program will throw an error.
+- The modified file should be inspected manually to ensure proper signature block placement.
+- The signature will **appear in the file**, but is **not valid** for security checks or software trust chains.
 
 ## Special Thanks :hearts:
 
 Big thanks to [annihilatorq](https://github.com/annihilatorq) for help and contributions!
-
