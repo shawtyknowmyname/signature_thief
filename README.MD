@@ -63,6 +63,7 @@ signature_thief.exe <signed_file> <payload_file> <output_file>
 - If no valid signature is found, the program will throw an error.
 - The modified file should be inspected manually to ensure proper signature block placement.
 - The signature will **appear in the file**, but is **not valid** for security checks or software trust chains.
+- ⚠️ **Note:** This tool has **not been tested on 32-bit Windows systems**. Compatibility with 32-bit OS environments is not guaranteed.
 
 ## :warning: Why this project matters
 
