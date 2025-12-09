@@ -4,27 +4,28 @@
 #include <vector>
 #include <filesystem>
 #include <optional>
-#include <windows.h>
 #include <span>
+#include <windows.h>
 
 class signature_thief {
 public:
-    explicit signature_thief(std::filesystem::path path_to_file);
+    explicit signature_thief(std::filesystem::path path);
 
-    [[nodiscard]] std::optional<std::string> load_file() noexcept;
-    void extract_certificate(const std::filesystem::path& from_where);
-    void append_certificate_to_payload(std::span<const uint8_t> signature_data);
+    [[nodiscard]] std::optional<std::string> load_payload() noexcept;
 
-    [[nodiscard]] const std::vector<uint8_t>& get_binary() const { return m_file; }
-    [[nodiscard]] const std::vector<uint8_t>& get_certificate() const { return m_cert; }
+    void extract_certificate(const std::filesystem::path& signed_pe_path);
+
+    void append_certificate(std::span<const uint8_t> signature);
+
+    [[nodiscard]] const std::vector<uint8_t>& payload() const noexcept { return m_payload; }
+    [[nodiscard]] const std::vector<uint8_t>& certificate() const noexcept { return m_cert; }
 
 private:
-    IMAGE_DATA_DIRECTORY* get_security_dir(uint8_t* base);
-    void update_pe_header();
+    IMAGE_DATA_DIRECTORY* security_directory(uint8_t* base);
 
-    std::vector<uint8_t> m_file;
+    std::filesystem::path m_payload_path;
+    std::vector<uint8_t> m_payload;
     std::vector<uint8_t> m_cert;
-    std::filesystem::path m_source_path;
 };
 
-#endif
+#endif // SIGNATURE_THIEF_HPP

