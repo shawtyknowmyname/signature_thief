@@ -11,11 +11,17 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="pe_utils.hpp">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="signature_thief.hpp">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="pe_utils.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="signature_thief.cpp">
       <Filter>src</Filter>
     </ClCompile>

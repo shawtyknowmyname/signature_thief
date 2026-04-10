@@ -1,31 +1,23 @@
-#ifndef SIGNATURE_THIEF_HPP
-#define SIGNATURE_THIEF_HPP
+#pragma once
 
-#include <vector>
+#include <cstdint>
 #include <filesystem>
-#include <optional>
-#include <span>
-#include <windows.h>
+#include <vector>
 
 class signature_thief {
 public:
-    explicit signature_thief(std::filesystem::path path);
+    explicit signature_thief(std::filesystem::path payload_path);
 
-    [[nodiscard]] std::optional<std::string> load_payload() noexcept;
-
-    void extract_certificate(const std::filesystem::path& signed_pe_path);
-
-    void append_certificate(std::span<const uint8_t> signature);
-
-    [[nodiscard]] const std::vector<uint8_t>& payload() const noexcept { return m_payload; }
-    [[nodiscard]] const std::vector<uint8_t>& certificate() const noexcept { return m_cert; }
+    void process(const std::filesystem::path& signed_pe_path,
+                 const std::filesystem::path& output_path);
 
 private:
-    IMAGE_DATA_DIRECTORY* security_directory(uint8_t* base);
+    void load_payload();
+    void extract_certificate(const std::filesystem::path& signed_pe_path);
+    void apply_certificate();
+    void save(const std::filesystem::path& output_path) const;
 
     std::filesystem::path m_payload_path;
     std::vector<uint8_t> m_payload;
-    std::vector<uint8_t> m_cert;
+    std::vector<uint8_t> m_certificate;
 };
-
-#endif // SIGNATURE_THIEF_HPP

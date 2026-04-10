@@ -9,7 +9,7 @@
 
 ## :pushpin: Description
 
-Windows PE Signature Thief is a program designed to extract the digital signature from one PE file and install it onto another.
+Windows PE Signature Thief is a program designed to extract the digital signature from one PE file and apply it onto another.
 
 > :warning: **Disclaimer:**  
 > The transferred signature is **cosmetic only**.  
@@ -19,21 +19,48 @@ Windows PE Signature Thief is a program designed to extract the digital signatur
 
 ## :sparkles: Features
 
-- Extracts the digital signature from a PE file.
-- Installs the extracted signature onto another PE file.
-- Supports command-line usage.
+- Extracts the digital signature from a signed PE file (32-bit and 64-bit).
+- Applies the extracted signature onto another PE file.
+- Supports both interactive and command-line usage.
+
+## :wrench: Requirements
+
+- **Windows** (uses WinAPI PE structures)
+- **C++23** compatible compiler (MSVC v143+ with `/std:c++latest`)
+- **Visual Studio 2022** or later
+
+## :file_folder: Project Structure
+
+```
+signature_thief/
+  main.cpp                 # Entry point, CLI / interactive input
+  signature_thief.hpp      # signature_thief class interface
+  signature_thief.cpp      # Certificate extraction, application, saving
+  pe_utils.hpp             # PE parsing utilities (namespace pe_utils)
+  pe_utils.cpp             # Binary file I/O, security directory lookup
+```
+
+| Module | Responsibility |
+|---|---|
+| `pe_utils` | Low-level PE parsing: DOS/NT header validation, security directory access, binary file reading, alignment |
+| `signature_thief` | Business logic: loads payload, extracts certificate from donor, applies it, saves result |
+| `main` | User interaction: CLI arguments or interactive prompts |
 
 ## :file_folder: Installation
+
 ### Clone the repository:
 ```bash
 git clone https://github.com/shawtyknowmyname/signature_thief.git
 ```
-- Open the solution in Visual Studio or any preferred IDE.
-- Build the project (Ensure that the build completes successfully).
+- Open `signature_thief.sln` in Visual Studio.
+- Ensure C++ Language Standard is set to `/std:c++latest` (Project Properties → C/C++ → Language).
+- Build the project.
 
-## :rocket: Usage:
-### Run the program.
+## :rocket: Usage
 
+### Interactive mode
+
+Run the program without arguments and follow the prompts:
 - Enter the path of the signed file (from which you want to extract the signature).
 - Enter the path of the payload file (where the signature should be applied).
 - Specify the output path where the final signed file will be saved.
@@ -41,27 +68,22 @@ git clone https://github.com/shawtyknowmyname/signature_thief.git
 **Example of use:**
 ![](https://i.imgur.com/Su8VeiZ.jpeg)
 
----
+### Command-line mode
 
-# :computer: Using the command line:
-1. **Open a command prompt and navigate to the directory containing the compiled program.**
-
-2. **Run the command with the required arguments:**
 ```bash
 signature_thief.exe <signed_file> <payload_file> <output_file>
 ```
-- `<signed_file>`: Path to the signed file.
-- `<payload_file>`: Path to the file that should receive the digital signature.
-- `<output_file>`: Path to the final output file.
+- `<signed_file>` — path to the PE file that contains the digital signature.
+- `<payload_file>` — path to the PE file that should receive the signature.
+- `<output_file>` — path where the resulting file will be saved.
 
 **Example of use:**
 ![](https://i.imgur.com/WE2P8Z5.png)
 
 ## :loudspeaker: Notes
 
-- Ensure that both files are valid PE binaries (either 32‑bit or 64‑bit).
-- If no valid signature is found, the program will throw an error.
-- The modified file should be inspected manually to ensure proper signature block placement.
+- Both files must be valid PE binaries (32-bit or 64-bit).
+- If no valid signature is found in the donor file, the program will report an error.
 - The signature will **appear in the file**, but is **not valid** for security checks or software trust chains.
 - :warning: **Note:** This tool has **not been tested on 32-bit Windows systems**. Compatibility with 32-bit OS environments is not guaranteed.
 
@@ -81,9 +103,9 @@ The purpose of this project is to **demonstrate and highlight** these inconsiste
 - Understand which certificate authorities are implicitly "whitelisted" by vendors.
 - Reproduce conditions described in security papers such as [SpecterOps: Subverting Trust in Windows](https://specterops.io/wp-content/uploads/sites/3/2022/06/SpecterOps_Subverting_Trust_in_Windows.pdf).
 
-> The signature appended by this tool is not valid — and that’s the point.
+> The signature appended by this tool is not valid — and that's the point.
 
-It’s meant to explore **how far you can get** with just the appearance of trust, not the actual cryptographic proof of it.
+It's meant to explore **how far you can get** with just the appearance of trust, not the actual cryptographic proof of it.
 
 **Use responsibly.**
 

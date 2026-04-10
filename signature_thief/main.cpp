@@ -1,7 +1,8 @@
 #include "signature_thief.hpp"
+
 #include <iostream>
-#include <fstream>
-#include <stdexcept>
+#include <print>
+#include <string>
 
 int main(int argc, char** argv)
 {
@@ -16,40 +17,25 @@ int main(int argc, char** argv)
             output_path = argv[3];
         }
         else {
-            std::cout << "Enter path to SIGNED PE file: ";
+            std::print("Enter path to SIGNED PE file: ");
             std::getline(std::cin, signed_pe_path);
 
-            std::cout << "Enter path to PAYLOAD file: ";
+            std::print("Enter path to PAYLOAD file: ");
             std::getline(std::cin, payload_path);
 
-            std::cout << "Enter OUTPUT file path: ";
+            std::print("Enter OUTPUT file path: ");
             std::getline(std::cin, output_path);
         }
 
         signature_thief thief(payload_path);
+        thief.process(signed_pe_path, output_path);
 
-        if (auto err = thief.load_payload()) {
-            std::cerr << "Error: " << *err << "\n";
-            return EXIT_FAILURE;
-        }
-
-        thief.extract_certificate(signed_pe_path);
-
-        thief.append_certificate(thief.certificate());
-
-        std::ofstream out(output_path, std::ios::binary);
-        if (!out.is_open())
-            throw std::runtime_error("Failed to open output file: " + output_path);
-
-        const auto& data = thief.payload();
-        out.write(reinterpret_cast<const char*>(data.data()), data.size());
-
-        std::cout << "Certificate appended successfully\n";
+        std::println("Certificate appended successfully");
 
         return EXIT_SUCCESS;
     }
     catch (const std::exception& e) {
-        std::cerr << "Fatal error: " << e.what() << "\n";
+        std::println(stderr, "Fatal error: {}", e.what());
         return EXIT_FAILURE;
     }
 }
